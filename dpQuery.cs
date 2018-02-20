@@ -72,7 +72,7 @@ namespace DpQuery
 						execute.Invoke(transaction);
 						transaction.Commit();
 					}
-					catch (Exception ex)
+					catch
 					{
 						transaction.Rollback();
 						throw;
@@ -84,37 +84,10 @@ namespace DpQuery
 		}
 		#endregion
 
-		#region ExecuteInTransactionAsync
-		public async Task ExecuteInTransactionAsync(Action transactionBody, CommandType commandType = CommandType.StoredProcedure)
-		{
-			using (SqlConnection connection = new SqlConnection(_GetConnectionString()))
-			{
-				await connection.OpenAsync().ConfigureAwait(false);
-
-				using (SqlTransaction transaction = connection.BeginTransaction())
-				{
-					try
-					{
-						transactionBody.Invoke();
-						transaction.Commit();
-					}
-					catch
-					{
-						transaction.Rollback();
-						throw;
-					}
-					transaction.Commit();
-				}
-			}
-		}
-		#endregion
-
-
-
 		#region FillDataTableAsync
 		public DataTable FillDataTableInTransaction(string sql, SqlTransaction transaction, Action<SqlParameterCollection> addAdditionalParametersAction = null, CommandType commandType = CommandType.StoredProcedure)
 		{
-			using (SqlCommand dbCommand = new SqlCommand(sql, transaction.Connection))
+			using (SqlCommand dbCommand = new SqlCommand(sql, transaction.Connection, transaction))
 			{
 				dbCommand.CommandType = commandType;
 				addAdditionalParametersAction?.Invoke(dbCommand.Parameters);
@@ -150,7 +123,7 @@ namespace DpQuery
 		}
 		public DataTable FillDataTableInTransaction(Func<string> sqlGet, SqlTransaction transaction, Action<SqlParameterCollection> addAdditionalParametersAction = null, CommandType commandType = CommandType.StoredProcedure)
 		{
-			using (SqlCommand dbCommand = new SqlCommand(sqlGet(), transaction.Connection))
+			using (SqlCommand dbCommand = new SqlCommand(sqlGet(), transaction.Connection, transaction))
 			{
 				dbCommand.CommandType = commandType;
 				addAdditionalParametersAction?.Invoke(dbCommand.Parameters);
@@ -190,18 +163,15 @@ namespace DpQuery
 		#region _GetConnectionString
 		private string _GetConnectionString()
 		{
-
 			if (connectionStringSettings != null)
 				return connectionStringSettings.ConnectionString;
-
-			ConnectionStringSettings xc = ConfigurationManager.ConnectionStrings["Default"];
 
 			return ConfigurationManager.ConnectionStrings["Default"]?.ConnectionString;
 			
 		}
 		#endregion
 
-		#region ExecuteScalarAsync
+		#region ExecuteScalar
 		public async Task<object> ExecuteScalarAsync(string sql, Action<SqlParameterCollection> addAdditionalParametersAction = null,
 			CommandType commandType = CommandType.StoredProcedure)
 		{
@@ -217,6 +187,21 @@ namespace DpQuery
 					return await dbCommand.ExecuteScalarAsync().ConfigureAwait(false);
 				}
 			}
+		}
+
+		public object ExecuteScalarInTransaction(string sql, 
+																SqlTransaction transaction, 
+																Action<SqlParameterCollection> addAdditionalParametersAction = null,
+																CommandType commandType = CommandType.StoredProcedure)
+		{
+			using (SqlCommand dbCommand = new SqlCommand(sql, transaction.Connection, transaction))
+			{
+				dbCommand.CommandType = commandType;
+				addAdditionalParametersAction?.Invoke(dbCommand.Parameters);
+
+				return dbCommand.ExecuteScalar();
+			}
+		
 		}
 		#endregion
 
@@ -258,7 +243,6 @@ namespace DpQuery
 			}
 		}
 		#endregion
-
 
 	}
 
