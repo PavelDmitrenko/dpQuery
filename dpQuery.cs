@@ -205,7 +205,7 @@ namespace DpQuery
 		}
 		#endregion
 
-		#region ExecuteNonQueryAsync
+		#region ExecuteNonQuery
 		public async Task ExecuteNonQueryAsync(string sql, Action<SqlParameterCollection> addAdditionalParametersAction = null, CommandType commandType = CommandType.StoredProcedure)
 		{
 			using (SqlConnection conn = new SqlConnection(_GetConnectionString()))
@@ -218,6 +218,21 @@ namespace DpQuery
 					addAdditionalParametersAction?.Invoke(dbCommand.Parameters);
 
 					await dbCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+				}
+			}
+		}
+
+		public  void ExecuteNonQuery(string sql, Action<SqlParameterCollection> addAdditionalParametersAction = null, CommandType commandType = CommandType.StoredProcedure)
+		{
+			using (SqlConnection conn = new SqlConnection(_GetConnectionString()))
+			{
+				conn.Open();
+
+				using (SqlCommand dbCommand = new SqlCommand(sql, conn))
+				{
+					dbCommand.CommandType = commandType;
+					addAdditionalParametersAction?.Invoke(dbCommand.Parameters);
+					dbCommand.ExecuteNonQuery();
 				}
 			}
 		}
