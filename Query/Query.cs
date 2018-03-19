@@ -169,7 +169,7 @@ namespace DpQuery
 		}
 		#endregion
 
-		#region FillDataTableAsync
+		#region FillDataTable
 		public DataTable FillDataTableInTransaction(string sql, SqlTransaction transaction, Action<SqlParameterCollection> addAdditionalParametersAction = null, CommandType commandType = CommandType.StoredProcedure)
 		{
 			if (DebugMode)
@@ -187,6 +187,32 @@ namespace DpQuery
 					var result = new DataTable();
 					da.Fill(result);
 					return result;
+				}
+			}
+		}
+
+		public DataTable FillDataTable(string sql, Action<SqlParameterCollection> addAdditionalParametersAction = null, CommandType commandType = CommandType.StoredProcedure)
+		{
+			if (DebugMode)
+			{
+				Debug.WriteLine($"[FillDataTableAsync] {sql}");
+			}
+
+			using (SqlConnection conn = new SqlConnection(_GetConnectionString()))
+			{
+				conn.Open();
+
+				using (SqlCommand dbCommand = new SqlCommand(sql, conn))
+				{
+					dbCommand.CommandType = commandType;
+					addAdditionalParametersAction?.Invoke(dbCommand.Parameters);
+
+					using (SqlDataAdapter da = new SqlDataAdapter(dbCommand))
+					{
+						var result = new DataTable();
+						da.Fill(result);
+						return result;
+					}
 				}
 			}
 		}
@@ -385,7 +411,31 @@ namespace DpQuery
 		}
 		#endregion
 
-		#region ExecuteReaderAsync
+		#region ExecuteReader
+		public void ExecuteReader(string sql, Action<SqlParameterCollection> addAdditionalParametersAction, Action<SqlDataReader> ReaderAction, CommandType commandType = CommandType.StoredProcedure)
+		{
+			if (DebugMode)
+			{
+				Debug.WriteLine($"[ExecuteReaderAsync] {sql}");
+			}
+
+			using (SqlConnection conn = new SqlConnection(_GetConnectionString()))
+			{
+				conn.Open();
+
+				using (SqlCommand dbCommand = new SqlCommand(sql, conn))
+				{
+					dbCommand.CommandType = commandType;
+					addAdditionalParametersAction?.Invoke(dbCommand.Parameters);
+
+					SqlDataReader Reader = dbCommand.ExecuteReader(CommandBehavior.CloseConnection);
+					ReaderAction?.Invoke(Reader);
+					Reader.Close();
+
+				}
+			}
+		}
+
 		public async Task ExecuteReaderAsync(string sql, Action<SqlParameterCollection> addAdditionalParametersAction, Action<SqlDataReader> ReaderAction, CommandType commandType = CommandType.StoredProcedure)
 		{
 			if (DebugMode)
