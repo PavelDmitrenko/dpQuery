@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace DpQuery
+namespace dpQuery
 {
 	public partial class Qs
 	{

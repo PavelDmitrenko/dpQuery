@@ -1,6 +1,6 @@
 ﻿using System.Configuration;
 
-namespace DpQuery
+namespace dpQuery
 {
 	public partial class Qs
 	{

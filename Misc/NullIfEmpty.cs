@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DpQuery
+namespace dpQuery
 {
 	public static class NullIfEmpty
 	{
