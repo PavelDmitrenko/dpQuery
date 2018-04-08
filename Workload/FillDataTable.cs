@@ -43,7 +43,7 @@ namespace dpQuery
 				using (SqlDataAdapter da = new SqlDataAdapter(dbCommand))
 				{
 					var result = new DataTable();
-					await Task.Run(() => da.Fill(result)); // Async method is missing
+					da.Fill(result); // Async method is missing
 					return result;
 				}
 			}

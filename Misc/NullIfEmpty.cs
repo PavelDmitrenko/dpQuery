@@ -15,6 +15,14 @@ namespace dpQuery
 			return value.Value;
 		}
 
+		public static object String(string value)
+		{
+			if (string.IsNullOrEmpty(value))
+				return DBNull.Value;
+
+			return value;
+		}
+
 		public static object Date(DateTime? value)
 		{
 			if (!value.HasValue)
